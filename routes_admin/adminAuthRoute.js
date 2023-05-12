@@ -27,11 +27,11 @@ router.post("/login",limiter, async (req, res) => {
       req.body.username === process.env.ADMINUSERNAME &&
       req.body.password === process.env.ADMINUSERKEY
     ) {
-      const token = jwt.sign({ _id: "user._id" }, process.env.ADMIN_JWT, {
+      const token = jwt.sign({ _id: "user._id" }, "process.env.ADMIN_JWT", {
         expiresIn: "1h",
       });
       return res
-        .cookie("admin_auth_token", token, {
+        .cookie("toeb", token, {
           // httpOnly: true,
           // sameSite: "strict", 
           // secure: true, 
