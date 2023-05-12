@@ -32,8 +32,9 @@ router.post("/login",limiter, async (req, res) => {
       });
       return res
         .cookie("admin_auth_token", token, {
-          httpOnly: true,
-          secure: true, 
+          // httpOnly: true,
+          // sameSite: "strict", 
+          // secure: true, 
         })
         .json({
           success: true,
