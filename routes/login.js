@@ -57,12 +57,12 @@ router.post("/", async (req, res) => {
 
     const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
     return res
-      .cookie("access_token", token, {
-        httpOnly: true,
-        sameSite: "strict",
-        secure: true, 
-      })
-      .json({ success: true, msg: "Login Authenticated & Token Generated" });
+      // .cookie("access_token", token, {
+      //   httpOnly: true,
+      //   sameSite: "strict",
+      //   secure: true, 
+      // })
+      .json({ success: true, msg: "Login Authenticated & Token Generated", token: token });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ success: false, msg: "Internal Server Error" });
