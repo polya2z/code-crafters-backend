@@ -1,12 +1,12 @@
 const jwt = require('jsonwebtoken');
 
 async function admin_auth(req, res) {
-  const token = req.cookies.admin_auth_token;
+  const token = req.body.admin_token;
   try {
     const decoded = await jwt.verify(token, process.env.ADMIN_JWT);
     return { verified: true, decoded: decoded };
   } catch (err) {
-    return { verified: false };
+    return { verified: false, er: err , token: token };
   }
 }
 

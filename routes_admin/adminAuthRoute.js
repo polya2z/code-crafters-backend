@@ -21,24 +21,25 @@ const limiter = rateLimit({
 });
 
 
-router.post("/login",limiter, async (req, res) => {
+router.post("/login", limiter, async (req, res) => {
   try {
     if (
       req.body.username === process.env.ADMINUSERNAME &&
       req.body.password === process.env.ADMINUSERKEY
     ) {
-      const token = jwt.sign({ _id: "user._id" }, "process.env.ADMIN_JWT", {
-        expiresIn: "1h",
+      const token = jwt.sign({ _id: process.env.ADMINUSERKEY }, process.env.ADMIN_JWT, {
+
       });
       return res
-        .cookie("toeb", token, {
-          // httpOnly: true,
-          // sameSite: "strict", 
-          // secure: true, 
-        })
+        // .cookie("admin_auth_token", token, {
+        //   httpOnly: true,
+        //   sameSite: "strict",
+        //   domain: ".localhost",
+        // })
         .json({
           success: true,
-          msg: "admin Authenticated & Token Generated",
+          msg: "Admin Authenticated & Token Generated",
+          token: token
         });
     } else {
       res.json({ success: false, msg: "Un-Authorized !" });
