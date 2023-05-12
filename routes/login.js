@@ -38,12 +38,13 @@ router.post("/", async (req, res) => {
     let user;
     const isEmail = validateEmail(req.body.emailorphone);
     if (isEmail) {
-      user = await User.findOne({ email: req.body.emailorphone });
+      user = await User.findOne({ email: req.body.emailorphone, verified: true });
     } else {
-      user = await User.findOne({ phone: req.body.emailorphone });
+      user = await User.findOne({ phone: req.body.emailorphone, verified: true });
     }
+
     if (!user) {
-      return res.status(401).json({ success: false, msg: "Login failed. Please check your email/phone number and password" });
+      return res.status(401).json({ success: false, msg: " Please check your email/password or may be your account is not Verified yet...." });
     }
     // const user = await User.findOne({ email: req.body.email });
     // if (!user) {
