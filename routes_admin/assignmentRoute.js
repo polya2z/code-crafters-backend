@@ -36,6 +36,7 @@ router.post("/new", async (req, res) => {
       name: req.body.name,
       topic: req.body.topic,
       due: req.body.due,
+      image_link: req.body.image_link
     });
 
     await newAssg.save();
