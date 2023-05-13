@@ -24,11 +24,76 @@ router.get("/", limiter, async (req, res) => {
   res.json(assignment);
 });
 
-router.post("/submit", async (req, res) => {
+
+const { google } = require('googleapis');
+const path = require('path');
+const fs = require('fs');
+
+
+const CLIENT_ID = process.env.CLIENT_ID
+const CLIENT_SECRET = process.env.CLIENT_SECRET
+const REDIRECT_URI = 'https://developers.google.com/oauthplayground';
+const REFRESH_TOKEN = process.env.REFRESH_TOKEN
+
+const oauth2Client = new google.auth.OAuth2(
+  CLIENT_ID,
+  CLIENT_SECRET,
+  REDIRECT_URI
+);
+oauth2Client.setCredentials({ refresh_token: REFRESH_TOKEN });
+const drive = google.drive({
+  version: 'v3',
+  auth: oauth2Client,
+});
+
+async function uploadFile(Filename, filePath) {
+  try {
+    const response = await drive.files.create({
+      requestBody: {
+        name: `${Filename}`,
+        mimeType: 'application/pdf',
+      },
+      media: {
+        mimeType: 'application/pdf',
+        body: fs.createReadStream(filePath),
+      },
+    });
+    console.log(response.data);
+  } catch (error) {
+    console.log(error.message);
+  }
+}
+
+const multer = require("multer");
+const User = require("../models/Users.model");
+const filePath2 = path.join(__dirname);
+const upload = multer({ dest: filePath2 });
+
+router.post("/submit", upload.single("file"), async (req, res) => {
   const assignmentId = req.body.assignment_id;
   const userId = req.body.user_id;
+  const file = req.file;
+  if (!file) {
+    return res.status(400).send("Please upload a file");
+  }
+  const ext = '.' + file.originalname.split('.').pop();
+  if (ext !== ".pdf") {
+    return res.status(400).send("Please upload a PDF file");
+  }
 
   try {
+    const assignmentName = await Assignment.findOne(
+      { _id: assignmentId },);
+
+    const userName = await User.findOne(
+      { _id: userId },);
+
+    const unique_id = Math.floor(Math.random() * 900) + 100;
+    const newFilename = `${userName.name}_${assignmentName.name}_${unique_id}${ext}`;
+    await fs.promises.rename(file.path, `${filePath2}/${newFilename}`);
+    await uploadFile(newFilename, `${filePath2}/${newFilename}`)
+    await fs.promises.unlink(`${filePath2}/${newFilename}`);
+
     const assignment = await Assignment.findOneAndUpdate(
       { _id: assignmentId },
       { $push: { submitted: userId } },
@@ -38,11 +103,10 @@ router.post("/submit", async (req, res) => {
     if (!assignment) {
       return res.status(404).send("Assignment not found");
     }
-
-    res.send(assignment);
+    res.json({ assignment: assignment, success: true });
   } catch (err) {
     console.error(err);
-    res.status(500).send("Server Error");
+    res.status(500).json({ success: false });
   }
 });
 
@@ -56,7 +120,6 @@ router.get("/:id", limiter, async (req, res) => {
 
 router.post("/status", limiter, async (req, res) => {
   const { user_id } = req.body;
-
   let assignments = await Assignment.find({ submitted: user_id });
   res.json(assignments);
 });
